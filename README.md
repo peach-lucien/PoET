@@ -3,7 +3,7 @@
 
 
 <p align="center">
-  <img src="./artwork/poet_header.png" alt="plot" width="256">
+  <img src="./artwork/poet_header.png" alt="plot" width="400">
 </p>
 
 
