@@ -51,7 +51,7 @@ To install [Project Name], clone the repository to your local machine:
 
 ```bash
 git clone https://github.com/peach-lucien/poet.git
-cd twister
+cd PoET
 pip install -e .
 ```
 
