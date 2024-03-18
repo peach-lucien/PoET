@@ -185,11 +185,11 @@ def extract_kinematic_tremor_features(pc, plot=False, save_plots=False):
 
             # standard spectrum
             f_x, P_x = spectrum(x, fs) 
-            f_y, P_y = spectrum(x, fs) 
+            f_y, P_y = spectrum(y, fs) 
             
             # spectrogram
             f_spectrogram_x, S_x = spectrogram(x, fs)
-            f_spectrogram_y, S_y = spectrogram(x, fs)
+            f_spectrogram_y, S_y = spectrogram(y, fs)
             
             # hilbert
             analytic_signal_x = hilbert(x)
@@ -317,11 +317,11 @@ def extract_postural_tremor_features(pc, plot=False, save_plots=False):
 
             # standard spectrum
             f_x, P_x = spectrum(x, fs) 
-            f_y, P_y = spectrum(x, fs) 
+            f_y, P_y = spectrum(y, fs) 
             
             # spectrogram
             f_spectrogram_x, S_x = spectrogram(x, fs)
-            f_spectrogram_y, S_y = spectrogram(x, fs)
+            f_spectrogram_y, S_y = spectrogram(y, fs)
             
             # hilbert
             analytic_signal_x = hilbert(x)
@@ -448,11 +448,11 @@ def extract_proximal_tremor_features(pc, plot=False, save_plots=False):
 
             # standard spectrum
             f_x, P_x = spectrum(x, fs) 
-            f_y, P_y = spectrum(x, fs) 
+            f_y, P_y = spectrum(y, fs) 
             
             # spectrogram
             f_spectrogram_x, S_x = spectrogram(x, fs)
-            f_spectrogram_y, S_y = spectrogram(x, fs)
+            f_spectrogram_y, S_y = spectrogram(y, fs)
             
             # hilbert
             analytic_signal_x = hilbert(x)

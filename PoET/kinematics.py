@@ -5,7 +5,7 @@ from PoET.utils import check_hand_
 
 def extract_tremor(pc):
     
-    # define set of distance for analysing tapping
+    # define set of distance for analysing tremor
     marker_features ={'right':[['index_finger_tip_right','x'], ['index_finger_tip_right','y'], # kinematic
                                ['middle_finger_tip_right','x'], ['middle_finger_tip_right','y'], # postural
                                ['right_elbow','x'], ['right_elbow','y']], # proximal
