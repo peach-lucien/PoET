@@ -3,7 +3,7 @@
 
 
 <p align="center">
-  <img src="./artwork/poet_header.png" alt="plot" width="256">
+  <img src="./artwork/poet_header.png" alt="plot" width="400">
 </p>
 
 
@@ -51,7 +51,7 @@ To install [Project Name], clone the repository to your local machine:
 
 ```bash
 git clone https://github.com/peach-lucien/poet.git
-cd twister
+cd PoET
 pip install -e .
 ```
 
