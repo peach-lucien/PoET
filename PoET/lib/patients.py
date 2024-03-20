@@ -5,7 +5,8 @@ import logging
 
 import numpy as np
 import pandas as pd
-import simdkalman
+#import simdkalman
+from scipy import ndimage
 from .structural_features import compute_distances
 from .utils import pre_high_pass_filter, pre_low_pass_filter
 from .pio import save_object, load_object
