@@ -134,7 +134,6 @@ class Patient:
                 patient_id=None,
                 low_cut=0,
                 high_cut=None,
-                kalman=False,
                 movement_labels=None,
                 clean=True,
                 normalize=True,
@@ -181,7 +180,6 @@ class Patient:
         self.id = -1
         self.cleaned = 0
         self.dummy_variables = None
-        self.kalman=kalman
         self.smooth=smooth
         self.window_length=smoothing_window_length
 
@@ -267,8 +265,8 @@ class Patient:
             if self.smooth=='median':
                 self.pose_estimation = smooth_median(self.pose_estimation, self.markers, window_len=self.window_length)
         
-        if self.kalman:
-            self.pose_estimation = filter_pose_estimation(self.pose_estimation, self.markers, self.sampling_frequency)
+        #if self.kalman:
+        #    self.pose_estimation = filter_pose_estimation(self.pose_estimation, self.markers, self.sampling_frequency)
         
         self.cleaned = 1
 
@@ -420,29 +418,29 @@ def filter_high_frequency(
     filtered_data = pre_low_pass_filter(data,markers,fps,high_cut=high_cut)    
     return filtered_data
 
-def filter_pose_estimation(
-    data,
-    markers,
-    sampling_frequency,
-    keep_na=True,
-):
-    """Function to smoothen marker estimation"""
+# def filter_pose_estimation(
+#     data,
+#     markers,
+#     sampling_frequency,
+#     keep_na=True,
+# ):
+#     """Function to smoothen marker estimation"""
 
-    kf = simdkalman.KalmanFilter(
-                                state_transition = np.array([[1,1],[0,1]]),
-                                process_noise = np.diag([0.1, 0.01]),
-                                observation_model = np.array([[1,0]]),
-                                observation_noise = 1.0
-                                )
-    data_smoothed = data.copy()
-    for marker in markers:
-        data_smoothed[(marker,'x')] = kf.smooth(data_smoothed[(marker,'x')]).observations.mean
-        data_smoothed[(marker,'y')] = kf.smooth(data_smoothed[(marker,'y')]).observations.mean
+#     kf = simdkalman.KalmanFilter(
+#                                 state_transition = np.array([[1,1],[0,1]]),
+#                                 process_noise = np.diag([0.1, 0.01]),
+#                                 observation_model = np.array([[1,0]]),
+#                                 observation_noise = 1.0
+#                                 )
+#     data_smoothed = data.copy()
+#     for marker in markers:
+#         data_smoothed[(marker,'x')] = kf.smooth(data_smoothed[(marker,'x')]).observations.mean
+#         data_smoothed[(marker,'y')] = kf.smooth(data_smoothed[(marker,'y')]).observations.mean
 
-    if keep_na:
-        data_smoothed = data_smoothed.mask(data.isnull())
+#     if keep_na:
+#         data_smoothed = data_smoothed.mask(data.isnull())
 
-    return data_smoothed
+#     return data_smoothed
 
 def smooth_median(data,
                     markers,
