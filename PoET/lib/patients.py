@@ -3,12 +3,9 @@ Classes for creating patient objects compatible with TWSTRS.
 """
 import logging
 
-import networkx as nx
 import numpy as np
 import pandas as pd
-import scipy as sc
 import simdkalman
-from scipy import signal, ndimage
 from .structural_features import compute_distances
 from .utils import pre_high_pass_filter, pre_low_pass_filter
 from .pio import save_object, load_object

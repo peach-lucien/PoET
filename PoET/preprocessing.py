@@ -2,10 +2,8 @@
 import os
 
 import pandas as pd
-import numpy as np
 
 from PoET.lib.patients import Patient, PatientCollection
-from PoET.utils import compute_spectrogram
 
 
 def construct_data(csv_files, fs, labels=None, scaling_factor=1, verbose=True, smooth=None):

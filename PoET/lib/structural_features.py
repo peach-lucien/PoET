@@ -5,15 +5,11 @@ Defining structural features to be computed
 
 import logging
 
-import networkx as nx
 import numpy as np
 import pandas as pd
-import scipy as sc
 from scipy import signal
-from neurodsp.spectral import compute_spectrum
 import csv
 import itertools
-import warnings
 
 L = logging.getLogger(__name__)
 

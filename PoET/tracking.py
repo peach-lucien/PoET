@@ -1,20 +1,11 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
 import skvideo.io
-import cv2
 import mediapipe as mp
-import itertools
 
-import pickle
-
-
-import sys
-import scipy.stats as st
 import os
-import glob
 
 from tqdm import tqdm
 
