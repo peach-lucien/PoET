@@ -1,7 +1,7 @@
 import pandas as pd
 
 from PoET.utils import check_hand_
-
+from tqdm import tqdm
 
 def extract_tremor(pc):
     
@@ -14,7 +14,8 @@ def extract_tremor(pc):
                                 ['left_elbow','x'], ['left_elbow','y']], # proximal
                         }    
 
-    for patient in pc.patients:
+    print('Extracting tremor ... ')
+    for patient in tqdm(pc.patients, total=len(pc.patients)):
         
         # identify tracked hand
         hands = check_hand_(patient)    
@@ -46,8 +47,8 @@ def extract_kinematic_tremor(pc):
     marker_features ={'right':[['index_finger_tip_right','x'], ['index_finger_tip_right','y']],
                         'left':[['index_finger_tip_left','x'], ['index_finger_tip_left','y']],
                         }    
-
-    for patient in pc.patients:
+    print('Extracting intention tremor ... ')
+    for patient in tqdm(pc.patients, total=len(pc.patients)):
         
         # identify tracked hand
         hands = check_hand_(patient)    
@@ -81,7 +82,8 @@ def extract_postural_tremor(pc):
                         'left':[['middle_finger_tip_left','x'], ['middle_finger_tip_left','y']],
                         }    
 
-    for patient in pc.patients:
+    print('Extracting postural tremor ... ')
+    for patient in tqdm(pc.patients, total=len(pc.patients)):
         
         # identify tracked hand
         hands = check_hand_(patient)    
@@ -112,7 +114,8 @@ def extract_proximal_tremor(pc):
                         'left':[['left_elbow','x'], ['left_elbow','y']],
                         }    
 
-    for patient in pc.patients:
+    print('Extracting proximal tremor ... ')
+    for patient in tqdm(pc.patients, total=len(pc.patients)):
         
         # identify tracked hand
         hands = check_hand_(patient)    

@@ -2,18 +2,22 @@
 
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
 from scipy import signal
+from scipy import ndimage
+from scipy.signal import medfilt
 from scipy.signal import  hilbert, butter, lfilter
 import matplotlib.pyplot as plt
 
-from PoET.utils import identify_active_time_period, check_hand_
-
+from PoET.utils import identify_active_time_period, check_hand_, meanfilt
+import prox_tv as ptv
 
 def assign_hand_time_periods(pc):
     
     # loop over patients and extract tapping features
-    for p in pc.patients:
+    print('Extracting active time periods of hands ... ')
+    for p in tqdm(pc.patients, total=len(pc.patients)):        
         
         # extract sampling frequency 
         fs = p.sampling_frequency
@@ -122,8 +126,9 @@ def extract_kinematic_tremor_features(pc, plot=False, save_plots=False):
     
     features_df = pd.DataFrame(index = pc.get_patient_ids())
 
-    # loop over patients and extract tapping features
-    for p in pc.patients:
+    # loop over patients and extract intention features
+    print('Extracting intention tremor features ... ')
+    for p in tqdm(pc.patients, total=len(pc.patients)):        
         
         # extract sampling frequency 
         fs = p.sampling_frequency
@@ -172,12 +177,31 @@ def extract_kinematic_tremor_features(pc, plot=False, save_plots=False):
             if plot:
                 plt.figure()
             
-            x = data.loc[:,f[0]]
-            y = data.loc[:,f[1]]
+            x = data.loc[:,f[0]].values
+            y = data.loc[:,f[1]].values
             
             # detrend the data
             x = signal.detrend(x)
-            y = signal.detrend(y)
+            y = signal.detrend(y)       
+            
+            k=21
+            smoothed_x = meanfilt(x, k)
+            smoothed_y = meanfilt(y, k)   
+            
+            #smoothed_x = ndimage.median_filter(x, size=20) # median_filter
+            #smoothed_y = ndimage.median_filter(y, size=20)
+            x = x - smoothed_x
+            y = y - smoothed_y      
+            
+            # detrend the data
+            x = signal.detrend(x)
+            y = signal.detrend(y)    
+            
+            # removing smoothed signal
+            #smoothed_y = ptv.tv1_1d(y, fs)
+            #y = y - smoothed_y
+            #smoothed_x = ptv.tv1_1d(x, fs)
+            #x = x - smoothed_x
             
             # filter the data to remove arm movements
             x = butter_bandpass_filter(x, 3, 12, fs, order=5)
@@ -254,8 +278,9 @@ def extract_postural_tremor_features(pc, plot=False, save_plots=False):
     
     features_df = pd.DataFrame(index = pc.get_patient_ids())
 
-    # loop over patients and extract tapping features
-    for p in pc.patients:
+    # loop over patients and extract intention features
+    print('Extracting postural tremor features ... ')
+    for p in tqdm(pc.patients, total=len(pc.patients)):      
         
         # extract sampling frequency 
         fs = p.sampling_frequency
@@ -310,7 +335,13 @@ def extract_postural_tremor_features(pc, plot=False, save_plots=False):
             # detrend the data
             x = signal.detrend(x)
             y = signal.detrend(y)
-
+            
+            # removing smoothed signal
+            smoothed_y = ptv.tv1_1d(y, fs)
+            y = y - smoothed_y
+            smoothed_x = ptv.tv1_1d(x, fs)
+            x = x - smoothed_x
+            
             # filter the data to remove arm movements
             x = butter_bandpass_filter(x, 3, 12, fs, order=9)
             y = butter_bandpass_filter(y, 3, 12, fs, order=9)
@@ -385,8 +416,9 @@ def extract_proximal_tremor_features(pc, plot=False, save_plots=False):
     
     features_df = pd.DataFrame(index = pc.get_patient_ids())
 
-    # loop over patients and extract tapping features
-    for p in pc.patients:
+    # loop over patients and extract intention features
+    print('Extracting proximal tremor features ... ')
+    for p in tqdm(pc.patients, total=len(pc.patients)):      
         
         # extract sampling frequency 
         fs = p.sampling_frequency
@@ -441,6 +473,12 @@ def extract_proximal_tremor_features(pc, plot=False, save_plots=False):
             # detrend the data
             x = signal.detrend(x)
             y = signal.detrend(y)
+            
+            # removing smoothed signal
+            smoothed_y = ptv.tv1_1d(y, fs)
+            y = y - smoothed_y
+            smoothed_x = ptv.tv1_1d(x, fs)
+            x = x - smoothed_x
             
             # filter the data to remove arm movements
             x = butter_bandpass_filter(x, 3, 12, fs, order=5)

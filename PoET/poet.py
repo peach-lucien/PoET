@@ -9,9 +9,14 @@ from PoET.features import extract_tremor_features, assign_hand_time_periods
 
 
 class POET:
-    def __init__(self, video_folder):
+    def __init__(self, video_folder=None):
         self.video_folder = video_folder
-        self.video_list = self.identify_videos()
+        
+        if video_folder:
+            self.video_list = self.identify_videos()
+        else:
+            self.video_list = None
+        
         self.output_folder='./tracking/'
         self.patient_collection = None
 
@@ -86,17 +91,19 @@ class POET:
         # finding all tracked csv files
         if csv_files is None:
             csv_files = glob.glob(self.output_folder + '*.csv', recursive=True)
+        elif isinstance(csv_files, str):
+            csv_files = glob.glob(csv_files + '*.csv', recursive=True)
 
         # assigning a sampling frequency for each file
         if isinstance(sampling_frequency,int):
             sampling_frequency = [sampling_frequency] * len(csv_files)
-        elif len(sampling_frequency) > len(csv_files):
+        elif len(sampling_frequency) != len(csv_files):
             sampling_frequency = get_metadata(sampling_frequency, csv_files)
 
         # assigning a scaling factor for each csv file
         if isinstance(scaling_factor,int):
             scaling_factor = [scaling_factor] * len(csv_files)
-        elif len(scaling_factor) > len(csv_files):
+        elif len(scaling_factor) != len(csv_files):
             scaling_factor = get_metadata(scaling_factor, csv_files)
 
         # assigning a None label to each csv file

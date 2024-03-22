@@ -58,7 +58,7 @@ def track_video_list(video_list,
                      make_csv=True, 
                      make_video=True, 
                      world_coords=False,
-                     min_tracking_confidence=0.5,
+                     min_tracking_confidence=0.7,
                      min_hand_detection_confidence=0.5,
                      ):    
     """ video list but have full paths """
@@ -127,6 +127,10 @@ def track_video(video, pose, hands, output_folder='./', make_csv=True, make_vide
         #results_face_mesh = face_mesh.detect_for_video(mp_image,frame_ms)
         results_hands = hands.detect_for_video(mp_image, frame_ms)
         results_pose = pose.detect_for_video(mp_image, frame_ms)
+        
+        # = hands.detect(mp_image,)
+        #results_pose = pose.detect(mp_image,)
+        
         #results_pose = pose.process(image) 
                 
         # creating a copy of image

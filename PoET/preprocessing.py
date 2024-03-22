@@ -28,6 +28,11 @@ def construct_data(csv_files, fs, labels=None, scaling_factor=1, verbose=True, s
 
         # ensure no capital letters in column names for consistency
         pose_estimation = columns_to_lowercase(pose_estimation)
+        
+        # subset of features
+        pose_estimation = pose_estimation[['index_finger_tip_left','index_finger_tip_right',
+                                           'middle_finger_tip_left','middle_finger_tip_right',
+                                           'left_elbow','right_elbow',]]
 
         # construct a patient object
         p = Patient(pose_estimation,
@@ -37,11 +42,10 @@ def construct_data(csv_files, fs, labels=None, scaling_factor=1, verbose=True, s
                     label=labels[i],
                     low_cut=0,
                     high_cut=None,
-                    kalman=False,
                     clean=True,
                     scaling_factor=scaling_factor[i],
                     normalize=True,
-                    spike_threshold=0,
+                    spike_threshold=10,
                     interpolate_pose=True,
                     smooth=smooth,
                     )

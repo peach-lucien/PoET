@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 #import simdkalman
 from scipy import ndimage
+from scipy.signal import medfilt
 from .structural_features import compute_distances
 from .utils import pre_high_pass_filter, pre_low_pass_filter
 from .pio import save_object, load_object
@@ -357,24 +358,139 @@ class Patient:
 def remove_spikes(data, markers, threshold = 20):
     
     for marker in markers:
-           
+        
         data[(marker,'x')] = _remove_spikes(data[(marker,'x')], threshold)
         data[(marker,'y')] = _remove_spikes(data[(marker,'y')], threshold)
         
+        corrected_data = detect_and_correct_outliers(data[[(marker,'x'),(marker,'y')]].values)
+        data[(marker,'x')] = corrected_data[:,0]
+        data[(marker,'y')] = corrected_data[:,1]
+        #data.loc[outlier_periods,(marker,'x')] = np.nan
+        #data.loc[outlier_periods,(marker,'y')] = np.nan
+        
+        data[(marker,'x')] = data[(marker,'x')].interpolate(method='linear',limit_direction='both')
+        data[(marker,'y')] = data[(marker,'y')].interpolate(method='linear',limit_direction='both')
+        
+        #data[(marker,'y')] = 
+        
     return data
 
+def _remove_spikes(signal, median_window=5, std_window=20, threshold_factor=3):
+    # Ensure median_window is odd
+    if median_window % 2 == 0:
+        median_window += 1
+    
+    # Step 1: Apply median filter to smooth the signal
+    median_filtered = pd.Series(signal).rolling(window=median_window, center=True).median().fillna(method='bfill').fillna(method='ffill')
+    
+    # Step 2: Calculate rolling standard deviation on the median-filtered signal
+    rolling_std = median_filtered.rolling(window=std_window, center=True).std().fillna(method='bfill').fillna(method='ffill')
+    
+    # Step 3: Identify spikes - where the difference between the original signal and the median exceeds the threshold
+    spikes = np.abs(signal - median_filtered) > (threshold_factor * rolling_std)
+    
+    # Replace spikes with NaN or another suitable method
+    clean_signal = np.copy(signal)
+    clean_signal[spikes] = np.nan
+    
+    # Interpolating to fill the gaps left by removing spikes
+    clean_signal = pd.Series(clean_signal).interpolate(method='quadratic',limit_direction='both').to_numpy()
+    
+    return clean_signal
 
 
-def _remove_spikes(x, threshold):
+def detect_and_correct_outliers(xy_data, jump_threshold=100, return_threshold=100):
+    """
+    Detects outlier periods in x,y tracking data where the marker jumps away and then returns.
+
+    :param xy_data: Array of shape (n, 2) representing x, y coordinates over time.
+    :param jump_threshold: Distance indicating a significant jump, marking potential start of an outlier period.
+    :param return_threshold: Distance to the last good point indicating the marker has returned.
+    :return: Corrected x,y tracking data.
+    """
+    n = len(xy_data)
+    is_outlier = np.zeros(n, dtype=bool)
+    last_good_index = 0
+
+    i = 1
+    while i < n:
+        distance_from_last_good = np.linalg.norm(xy_data[i] - xy_data[last_good_index])
+
+        if distance_from_last_good > jump_threshold:
+            # Potential start of an outlier period
+            for j in range(i + 1, n):
+                distance_from_last_good = np.linalg.norm(xy_data[j] - xy_data[last_good_index])
+                if distance_from_last_good <= return_threshold:
+                    # Found the end of the outlier period
+                    is_outlier[i:j] = True
+                    i = j  # Continue from the end of this outlier period
+                    break
+            last_good_index = i
+        else:
+            last_good_index = i
+        i += 1
+
+    # Correct the identified outliers
+    corrected_data = xy_data.copy()
+    for i in range(1, n-1):
+        if is_outlier[i]:
+            corrected_data[i] = np.interp(i, [i for i in range(n) if not is_outlier[i]], xy_data[~is_outlier, 0]), np.interp(i, [i for i in range(n) if not is_outlier[i]], xy_data[~is_outlier, 1])
+
+
+
+    return corrected_data
+
+def detect_outlier_periods(xy_data, distance_threshold=100, min_outlier_duration=1):
+    """
+    Detect outlier periods in 2D marker tracking data.
+    
+    :param xy_data: A numpy array of shape (n, 2) representing x, y coordinates over time.
+    :param distance_threshold: Threshold for detecting spatial jumps as outliers.
+    :param min_outlier_duration: Minimum duration (in number of frames) to consider a group of points as an outlier period.
+    :return: A boolean array where True represents outliers.
+    """
+    # Calculate Euclidean distances between consecutive points
+    distances = np.sqrt(np.sum(np.diff(xy_data, axis=0)**2, axis=1))
+    distances = np.insert(distances, 0, 0)  # Add a 0 at the start to keep the array the same length as xy_data
+    
+    # Identify points where the distance exceeds the threshold
+    outliers = distances > distance_threshold
+    
+    # Temporally cluster outliers and filter out those that do not meet the minimum duration
+    outlier_periods = pd.Series(outliers).rolling(window=min_outlier_duration, center=True).max().fillna(0).astype(bool)
+    
+    return outlier_periods.to_numpy()
+
+def correct_outliers(xy_data, outlier_periods):
+    """
+    Correct outlier periods by linear interpolation.
+    
+    :param xy_data: Original x, y coordinates.
+    :param outlier_periods: Boolean array indicating outlier periods.
+    :return: Corrected x, y coordinates.
+    """
+    corrected_data = xy_data.copy()
+    for i in range(len(outlier_periods)):
+        if outlier_periods[i]:
+            if i == 0 or i == len(outlier_periods) - 1:
+                continue  # Skip correction if outlier is at the start or end
+            prev_non_outlier = i - np.where(~outlier_periods[:i])[0][-1]
+            next_non_outlier = np.where(~outlier_periods[i:])[0][0] + i
+            corrected_data[i] = corrected_data[prev_non_outlier] + (corrected_data[next_non_outlier] - corrected_data[prev_non_outlier]) * ((i - prev_non_outlier) / (next_non_outlier - prev_non_outlier))
+            
+    return corrected_data
+
+
+def _remove_spikes2(x, threshold):
     x_diff = np.where(abs(x.diff())>threshold)[0]
     
     if not x_diff.size==0:    
         sections = np.vstack([np.hstack([0,x_diff[:-1]]),x_diff]).T
         section_means = np.zeros(sections.shape[0])
         for i in range(sections.shape[0]):    
-            section_means[i] = np.mean(x[sections[i,0]:sections[i,1]])
+            section_means[i] = np.mean(x.iloc[sections[i,0]:sections[i,1]])
         
-            section_diff = np.mean(x[sections[i,0]:sections[i,1]]) - np.nanmedian(x)
+            section_diff = np.mean(x.iloc[sections[i,0]:sections[i,1]]) - np.nanmedian(x)
             if abs(section_diff) > threshold:
                 x.loc[sections[i,0]:sections[i,1]] = np.nan
     
